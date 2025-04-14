@@ -39,8 +39,6 @@ class _LoginPageState extends State<LoginPage> {
         throw Exception('Usuário não encontrado');
       }
 
-      print('Usuário logado com ID: ${user.id}');
-
       if (user.emailConfirmedAt == null) {
         throw Exception('Confirme seu e-mail antes de fazer login');
       }
@@ -55,12 +53,29 @@ class _LoginPageState extends State<LoginPage> {
         throw Exception('Dados do usuário não encontrados');
       }
 
-      print('Dados do usuário: $userData');
-
       if (mounted) {
         Navigator.pushReplacementNamed(
           context,
           userData['tipo'] == 'prestador' ? '/solicitacoes' : '/home',
+        );
+      }
+    } on AuthException catch (e) {
+      final message = e.message?.toLowerCase() ?? '';
+
+      String errorMessage;
+      if (message.contains('invalid login credentials') ||
+          message.contains('invalid_credentials')) {
+        errorMessage = 'Verifique suas credenciais';
+      } else {
+        errorMessage = e.message ?? 'Erro de autenticação';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } catch (e) {
@@ -76,6 +91,7 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
+
 
   @override
   void dispose() {
